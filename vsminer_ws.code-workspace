@@ -1,0 +1,10 @@
+{
+	"folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "python.pythonPath": "/home/nobus/.virtualenvs/vsminer/bin/python3.7"
+    }
+}
