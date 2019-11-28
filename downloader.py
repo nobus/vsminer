@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 import shutil
 
+import msgpack
+import msgpack_numpy as m
+m.patch()
+
+import matplotlib
+import matplotlib.pyplot as plt
+
+from astropy.io import fits
 from astropy.utils.data import download_file
 
 
-CACHE=False
+CACHE=True
 
 DATA_DIR = '/home/nobus/develop/vsminer/data'
 JOB = '3757403'
 JOB_DIR = os.path.join('/home/nobus/develop/vsminer/data', JOB)
 
 
-def _downloader(pref):
+def downloader(pref):
     """
         new_fits
         rdls
@@ -40,15 +49,42 @@ def _downloader(pref):
 
     shutil.move(old_file_name, new_file_name)
 
+    return new_file_name
+
+
+def image_converter(fpath):
+    hdu_list = fits.open(fpath)
+
+    if hdu_list:
+        image_data = hdu_list[0].data
+
+        matplotlib.image.imsave(
+            os.path.join(JOB_DIR, 'new_fits.png'),
+            image_data,
+            cmap='gray',
+            vmin=2.5e3,
+            vmax=3.6e3)
+
+        image_data_enc = msgpack.packb(image_data, default=m.encode)
+
+        fd = open(os.path.join(JOB_DIR, 'new_fits.mpack'), 'wb')
+        fd.write(image_data_enc)
+        fd.close()
+    else:
+        print('No image data', file=sys.stderr)
+
+    hdu_list.close()
 
 def main():
     if not os.path.exists(JOB_DIR):
         os.mkdir(JOB_DIR)
 
-    _downloader('new_fits')
-    _downloader('rdls')
-    _downloader('axy')
-    _downloader('corr')
+    downloader('rdls')
+    downloader('axy')
+    downloader('corr')
+
+    new_fits_fpath = downloader('new_fits')
+    image_converter(new_fits_fpath)
 
 
 if __name__ == '__main__':
