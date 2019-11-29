@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Photometry UI</title>
+
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <!--<link rel="stylesheet" href="style.css">-->
+    
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="jquery.dialogextend.js"></script>
+    <script src="https://unpkg.com/konva@4.0.18/konva.min.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #f0f0f0;
+        height: 100%;
+        overflow: auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="container"></div>
+
+    <div id="dialog" title="Basic dialog">
+        <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.</p>
+    </div>
+
+    <script>
+        $("#dialog")
+        .dialog({
+            width: 400,
+            height: 500,
+            buttons: {
+                "CROSS ON/OFF": function() {
+                    var current = crossChair.visible();
+                    crossChair.visible(!current);
+                }
+            },
+        }).dialogExtend({
+            "closable": false,
+            "collapsable" : true,
+        });
+
+        $("#dialog").parent().css('position', 'fixed');
+
+        var titleBar = $("#dialog").parent().children(".ui-dialog-titlebar");
+
+
+        var WIDTH = 5202;
+        var HEIGHT = 3465;
+
+        var stage = new Konva.Stage({
+            container: 'container',
+            width: WIDTH,
+            height: HEIGHT,
+            //draggable: true,
+        });
+
+        var layer = new Konva.Layer();
+        stage.add(layer);
+
+        var imageObj = new Image();
+
+        imageObj.onload = function() {
+            var new_fits = new Konva.Image({
+                x: 0,
+                y: 0,
+                image: imageObj,
+                width: WIDTH,
+                height: HEIGHT,
+            });
+
+            layer.add(new_fits);
+            layer.batchDraw();
+            };
+
+        imageObj.src = '../data/3757403/new_fits.png';
+
+        var crossChair = new Konva.Layer();
+        stage.add(crossChair);
+
+        var redLineVert = new Konva.Line({
+            points: [WIDTH/2, 0, WIDTH/2, HEIGHT],
+            stroke: 'red',
+            strokeWidth: 1,
+        });
+
+        var redLineHor = new Konva.Line({
+            points: [0, HEIGHT/2, WIDTH, HEIGHT/2],
+            stroke: 'red',
+            strokeWidth: 1,
+        });
+
+        crossChair.add(redLineVert);
+        crossChair.add(redLineHor);
+        crossChair.batchDraw();
+
+        var title = $("#dialog").parent().children(".ui-dialog-titlebar").children(".ui-dialog-title");
+
+        stage.on('mousemove', function() {
+            var mousePos = stage.getPointerPosition();
+            title.html('x: ' + mousePos.x + '; y: ' + mousePos.y);
+        });
+
+    </script>
+  </body>
+</html>
