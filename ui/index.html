@@ -37,10 +37,14 @@
             width: 400,
             height: 500,
             buttons: {
-                "CROSS ON/OFF": function() {
+                "Cross on/off": function() {
                     var current = crossChair.visible();
                     crossChair.visible(!current);
-                }
+                },
+                "Stars on/off": function() {
+                    var current = starLayer.visible();
+                    starLayer.visible(!current);
+                },
             },
         }).dialogExtend({
             "closable": false,
@@ -106,6 +110,30 @@
         stage.on('mousemove', function() {
             var mousePos = stage.getPointerPosition();
             title.html('x: ' + mousePos.x + '; y: ' + mousePos.y);
+        });
+
+        var starLayer = new Konva.Layer();
+        var starCircles = [];
+        stage.add(starLayer);
+
+        $.getJSON('../data/3757403/corr.json', function(data) {
+            console.log(data);
+            var tableData = data['data'];
+
+            for (var i = 0; i < tableData.length; i++) {
+                var circle = new Konva.Circle({
+                    x: tableData[i][0],
+                    y: tableData[i][1],
+                    radius: 15,
+                    stroke: 'lime',
+                    strokeWidth: 2,
+                });
+
+                starCircles.push(circle);
+                starLayer.add(circle);
+            }
+
+            starLayer.batchDraw();
         });
 
     </script>
