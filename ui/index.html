@@ -12,6 +12,10 @@
     <script src="jquery.dialogextend.js"></script>
     <script src="https://unpkg.com/konva@4.0.18/konva.min.js"></script>
 
+    <!-- https://mottie.github.io/tablesorter/docs/index.html#Demo -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.widgets.js"></script>
+
     <style>
       body {
         margin: 0;
@@ -28,7 +32,19 @@
     <div id="container"></div>
 
     <div id="dialog" title="Basic dialog">
-        <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.</p>
+        <table id="myTable" class="tablesorter">
+            <thead>
+                <tr>
+                <th>Star Name</th>
+                <th>RA</th>
+                <th>Dec</th>
+                <th>Min. mag</th>
+                <th>Max. mag</th>
+                </tr>
+            </thead>
+            <tbody class="tablebody">
+            </tbody>
+        </table>
     </div>
 
     <script>
@@ -54,7 +70,6 @@
         $("#dialog").parent().css('position', 'fixed');
 
         var titleBar = $("#dialog").parent().children(".ui-dialog-titlebar");
-
 
         var WIDTH = 5202;
         var HEIGHT = 3465;
@@ -125,6 +140,16 @@
                 var starName = AAVSOData[i]['name'];
                 var color = (vs === 'Variable') ? 'red' : 'lime';
 
+                var tableRec = '<tr>'
+                    + '<td>' + starName + '</td>'
+                    + '<td>' + tableData[i][2] + '</td>'
+                    + '<td>' + tableData[i][3] + '</td>'
+                    + '<td>' + AAVSOData[i]['aavso']['MinMag'] + '</td>'
+                    + '<td>' + AAVSOData[i]['aavso']['MaxMag'] + '</td>'
+                    + '</tr>';
+
+                $('#myTable').children('.tablebody').append(tableRec);
+
                 var circle = new Konva.Circle({
                     x: tableData[i][0],
                     y: tableData[i][1],
@@ -156,6 +181,7 @@
                 starLayer.add(text);
             }
 
+            $("#myTable").tablesorter();
             starLayer.batchDraw();
         });
 
