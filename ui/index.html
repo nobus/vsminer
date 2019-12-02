@@ -118,14 +118,19 @@
 
         $.getJSON('../data/3757403/corr.json', function(data) {
             console.log(data);
-            var tableData = data['data'];
+            var tableData = data['corr_data'];
+            var AAVSOData = data['aavso_data'];
 
             for (var i = 0; i < tableData.length; i++) {
+                var vs = AAVSOData[i]['aavso']['Category'];
+
+                var color = (vs === 'Variable') ? 'red' : 'lime';
+
                 var circle = new Konva.Circle({
                     x: tableData[i][0],
                     y: tableData[i][1],
                     radius: 15,
-                    stroke: 'lime',
+                    stroke: color,
                     strokeWidth: 2,
                 });
 
