@@ -134,8 +134,18 @@
                     strokeWidth: 2,
                 });
 
-                starCircles.push(circle);
+                var text = new Konva.Text({
+                    x: tableData[i][0] + 16,
+                    y: tableData[i][1],
+                    text: AAVSOData[i]['name'],
+                    fontSize: 20,
+                    fontFamily: 'Arial',
+                    fill: color,
+                });
+
+                starCircles.push([circle, text]);
                 starLayer.add(circle);
+                starLayer.add(text);
             }
 
             starLayer.batchDraw();
