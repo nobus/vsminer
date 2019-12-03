@@ -4,7 +4,7 @@ from django.db import models
 class AstroMetryJob(models.Model):
     # http://astrometry.net/doc/net/api.html#getting-job-results
 
-    job_number = models.PositiveIntegerField()
+    job_number = models.PositiveIntegerField(primary_key=True)
     url = models.URLField()
     orientation = models.FloatField(null=True, blank=True, default=None)
     pixscale = models.FloatField(null=True, blank=True, default=None)
