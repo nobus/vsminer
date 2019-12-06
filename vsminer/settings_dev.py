@@ -1,3 +1,6 @@
+import os
+
+from .settings import BASE_DIR
 
 USE_TZ = False
 
@@ -12,3 +15,4 @@ DATABASES = {
     }
 }
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'data')
