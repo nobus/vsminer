@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 import json
 import requests
@@ -17,6 +18,7 @@ from astropy.io import fits
 from astropy.utils.data import download_file
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
 
 from vs_app.models import AstroMetryJob
 
@@ -65,11 +67,52 @@ class Command(BaseCommand):
         else:
             raise BaseException(f'Job {self.job_id} has wrong status: {job_stat}')
 
+    def _download_file(self, pref):
+        url_fits = f'{self.astrometry_url}/{pref}_file/{self.job_number}'
+
+        fits_file = download_file(url_fits, cache=False)
+
+        shutil.copy2(fits_file, self.job_dir)
+
+        old_file_path = os.path.join(
+            self.job_dir,
+            os.path.join(
+                self.job_dir,
+                os.path.split(fits_file)[-1]
+                )
+            )
+
+        new_file_path = os.path.join(self.job_dir, f'{pref}.fits')
+        shutil.move(old_file_path, new_file_path)
+
+        return new_file_path
+
     def get_new_image(self):
-        pass
+        new_fits_fpath = self._download_file('new_fits')
+        hdu_list = fits.open(new_fits_fpath)
+
+        if hdu_list:
+            image_data = hdu_list[0].data
+
+            matplotlib.image.imsave(
+                os.path.join(self.job_dir, 'new_fits.png'),
+                image_data,
+                cmap='gray',
+                vmin=2.5e3,
+                vmax=3.6e3)     # add histogram's analize
+
+            image_data_enc = msgpack.packb(image_data, default=m.encode)
+
+            fd = open(os.path.join(self.job_dir, 'new_fits.mpack'), 'wb')
+            fd.write(image_data_enc)
+            fd.close()
+        else:
+            print('No image data', file=sys.stderr)
+
+        hdu_list.close()
 
     def get_corr(self):
-        pass
+        self._download_file('corr')
 
     def get_all(self):
         self.get_job_info()
@@ -79,6 +122,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.job_number = options['job_number']
         self.status_url = options['status_url']
+
+        self.astrometry_url = 'http://nova.astrometry.net'
+        self.job_dir = os.path.join(settings.MEDIA_ROOT, str(self.job_number))
+
+        if not os.path.exists(self.job_dir):
+            os.mkdir(self.job_dir)
 
         if options['all']:
             self.get_all()
