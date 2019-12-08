@@ -37,8 +37,8 @@ class NewFits(models.Model):
 class CorrFits(models.Model):
     astro_job = models.ForeignKey('AstroMetryJob', on_delete=models.CASCADE)
 
-    simbad_data = models.ForeignKey('SimbadData', on_delete=models.CASCADE)
-    aavso_data = models.ForeignKey('AAVSOdata', on_delete=models.CASCADE)
+    simbad_data = models.ForeignKey('SimbadData', on_delete=models.CASCADE, blank=True, null=True)
+    aavso_data = models.ForeignKey('AAVSOdata', on_delete=models.CASCADE, blank=True, null=True)
 
     field_x = models.FloatField(null=True, blank=True, default=None)
     field_y = models.FloatField(null=True, blank=True, default=None)
