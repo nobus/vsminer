@@ -7,6 +7,7 @@ import requests
 
 import shutil
 
+import numpy as np
 import msgpack
 import msgpack_numpy as m
 m.patch()
@@ -70,7 +71,7 @@ class Command(BaseCommand):
     def _download_file(self, pref):
         url_fits = f'{self.astrometry_url}/{pref}_file/{self.job_number}'
 
-        fits_file = download_file(url_fits, cache=False)
+        fits_file = download_file(url_fits, cache=True)
 
         shutil.copy2(fits_file, self.job_dir)
 
@@ -87,19 +88,42 @@ class Command(BaseCommand):
 
         return new_file_path
 
+    def _minmax_calc(self, image_data):
+        # magic numbers
+        NBINS = 1000
+        K = 1000
+
+        vmin = None
+        vmax = None
+        prev_elem = 0
+
+        h = np.histogram(image_data.flatten(), bins=NBINS)
+
+        for count, elem in enumerate(h[0]):
+            if elem > K:
+                vmax = count
+
+                if prev_elem < K:
+                    vmin = count
+
+            prev_elem = elem
+
+        return h[1][vmin], h[1][vmax]
+
     def get_new_image(self):
         fits_fpath = self._download_file('new_fits')
         hdu_list = fits.open(fits_fpath)
 
         if hdu_list:
             image_data = hdu_list[0].data
+            vmin, vmax = self._minmax_calc(image_data)
 
             matplotlib.image.imsave(
                 os.path.join(self.job_dir, 'new_fits.png'),
                 image_data,
                 cmap='gray',
-                vmin=2.5e3,
-                vmax=3.6e3)     # add histogram's analize
+                vmin=vmin,
+                vmax=vmax)
 
             image_data_enc = msgpack.packb(image_data, default=m.encode)
 
