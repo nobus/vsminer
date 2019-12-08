@@ -78,10 +78,10 @@ class SimbadData(models.Model):
     """
 
     MAIN_ID = models.CharField(max_length=33, null=True, blank=True, default=None)
-    RA = models.CharField(max_length=13)
-    DEC = models.CharField(max_length=13)
+    RA = models.FloatField()
+    DEC = models.FloatField()
     RA_PREC = models.IntegerField(null=True, blank=True, default=None)
-    RA_PREC = models.IntegerField(null=True, blank=True, default=None)
+    DEC_PREC = models.IntegerField(null=True, blank=True, default=None)
     COO_ERR_MAJA = models.FloatField(null=True, blank=True, default=None)
     COO_ERR_MINA = models.FloatField(null=True, blank=True, default=None)
     COO_ERR_ANGLE = models.FloatField(null=True, blank=True, default=None)
