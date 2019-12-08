@@ -20,7 +20,7 @@ from astropy.utils.data import download_file
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from vs_app.models import AstroMetryJob
+from vs_app.models import AstroMetryJob, CorrFits
 
 
 class Command(BaseCommand):
@@ -88,8 +88,8 @@ class Command(BaseCommand):
         return new_file_path
 
     def get_new_image(self):
-        new_fits_fpath = self._download_file('new_fits')
-        hdu_list = fits.open(new_fits_fpath)
+        fits_fpath = self._download_file('new_fits')
+        hdu_list = fits.open(fits_fpath)
 
         if hdu_list:
             image_data = hdu_list[0].data
@@ -112,7 +112,25 @@ class Command(BaseCommand):
         hdu_list.close()
 
     def get_corr(self):
-        self._download_file('corr')
+        fits_fpath = self._download_file('corr')
+
+        hdu_list = fits.open(fits_fpath)
+        fdata = hdu_list[1].data
+        cols = hdu_list[1].columns
+        hdu_list.close()
+
+        corr_data = []
+
+        job_obj = AstroMetryJob.objects.get(job_number=self.job_number)
+        CorrFits.objects.filter(astro_job=job_obj).delete()
+
+        for row in fdata:
+            data = [float(e) for e in row]
+            obj_params = dict(zip(cols.names, data))
+            obj_params['astro_job'] = job_obj
+
+            corr_obj = CorrFits(**obj_params)
+            corr_obj.save()
 
     def get_all(self):
         self.get_job_info()
