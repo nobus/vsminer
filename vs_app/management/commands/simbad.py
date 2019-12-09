@@ -11,7 +11,7 @@ from astroquery.simbad import Simbad
 
 from django.core.management.base import BaseCommand
 
-from vs_app.models import AstroMetryJob, CorrFits, SimbadData
+from vs_app.models import CorrFits, SimbadData
 
 
 class Command(BaseCommand):
