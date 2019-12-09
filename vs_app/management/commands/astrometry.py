@@ -15,13 +15,15 @@ m.patch()
 import matplotlib
 import matplotlib.pyplot as plt
 
+from datetime import datetime
+
 from astropy.io import fits
 from astropy.utils.data import download_file
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from vs_app.models import AstroMetryJob, CorrFits
+from vs_app.models import AstroMetryJob, CorrFits, NewFits
 
 
 class Command(BaseCommand):
@@ -110,11 +112,42 @@ class Command(BaseCommand):
 
         return h[1][vmin], h[1][vmax]
 
+    def set_headers(self, hdu_list):
+        params = {}
+
+        to_int = lambda x: int(x)
+        key_map = {
+            'NAXIS': ['naxis', to_int],
+            'NAXIS1': ['naxis1', to_int],
+            'NAXIS2': ['naxis2', to_int],
+            'DATE-OBS': ['date_obs', lambda x: datetime.strptime(x, '%d/%m/%Y').date()],
+            'UT-START': ['ut_start', lambda x: datetime.strptime(x, '%H:%M:%S').time()],
+            'EXPTIME': ['exptime', to_int],
+            'CRVAL1': ['ref_point_ra', to_int],
+            'CRVAL2': ['ref_point_dec', to_int],
+            'CRPIX1': ['ref_point_x', to_int],
+            'CRPIX2': ['ref_point_y', to_int],
+            'CD1_1': ['tranform_matrix', to_int],
+            'SCALE': ['scale', to_int],
+        }
+
+        for elem in hdu_list[0].header:
+            if elem in key_map:
+                params[key_map[elem][0]] = key_map[elem][1](hdu_list[0].header[elem])
+
+        job_obj = AstroMetryJob.objects.get(job_number=self.job_number)
+        NewFits.objects.filter(astro_job=job_obj).delete()
+
+        params['astro_job'] = job_obj
+        NewFits(**params).save()
+
     def get_new_image(self):
         fits_fpath = self._download_file('new_fits')
         hdu_list = fits.open(fits_fpath)
 
         if hdu_list:
+            self.set_headers(hdu_list)
+
             image_data = hdu_list[0].data
             vmin, vmax = self._minmax_calc(image_data)
 
