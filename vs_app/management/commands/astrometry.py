@@ -71,7 +71,7 @@ class Command(BaseCommand):
     def _download_file(self, pref):
         url_fits = f'{self.astrometry_url}/{pref}_file/{self.job_number}'
 
-        fits_file = download_file(url_fits, cache=True)
+        fits_file = download_file(url_fits, cache=False)
 
         shutil.copy2(fits_file, self.job_dir)
 
