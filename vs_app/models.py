@@ -92,7 +92,7 @@ class SimbadData(models.Model):
     class Meta:
         index_together = (('RA', 'DEC'),)
 
-class AAVSOdata(models.Model):
+class AAVSOData(models.Model):
     """
         https://www.aavso.org/comment/62475#comment-62475
 
@@ -146,14 +146,14 @@ class AAVSOdata(models.Model):
     VariabilityType = models.CharField(max_length=13, null=True, blank=True, default=None)
     Period = models.FloatField(null=True, blank=True, default=None)
     Epoch = models.FloatField(null=True, blank=True, default=None)
-    MaxMag = models.FloatField(null=True, blank=True, default=None)
-    MinMag = models.FloatField(null=True, blank=True, default=None)
-    MaxMinMagFilter = models.CharField(max_length=3, null=True, blank=True, default=None)
-    Discovered: models.CharField(max_length=256, null=True, blank=True, default=None)
+    MaxMag = models.CharField(max_length=9, null=True, blank=True, default=None)
+    MinMag = models.CharField(max_length=9, null=True, blank=True, default=None)
+    Discoverer = models.CharField(max_length=256, null=True, blank=True, default=None)
     SpectralType = models.CharField(max_length=33, null=True, blank=True, default=None)
     Category = models.CharField(max_length=15, null=True, blank=True, default=None)
     OID = models.CharField(max_length=15, null=True, blank=True, default=None)
     Constellation = models.CharField(max_length=9, null=True, blank=True, default=None)
 
+    # perhaps need TTL in future?
     class Meta:
         index_together = (('RA2000', 'Declination2000'),)
