@@ -77,7 +77,7 @@ class SimbadData(models.Model):
     * phi Per 01 43 39.6379 +50 41 19.432      11       11        0.110        0.120            90        A              O 2007A&A...474..653V
     """
 
-    MAIN_ID = models.CharField(max_length=33, null=True, blank=True, default=None)
+    MAIN_ID = models.CharField(max_length=33, primary_key=True)
     RA = models.FloatField()
     DEC = models.FloatField()
     RA_PREC = models.IntegerField(null=True, blank=True, default=None)
@@ -137,7 +137,7 @@ class AAVSOData(models.Model):
         }
     """
 
-    Name = models.CharField(max_length=33, null=True, blank=True, default=None)
+    Name = models.CharField(max_length=33, primary_key=True)
     AUID = models.CharField(max_length=33, null=True, blank=True, default=None)
     RA2000 = models.FloatField()
     Declination2000 = models.FloatField()
