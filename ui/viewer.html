@@ -48,8 +48,23 @@
     </div>
 
     <script>
-        $("#dialog")
-        .dialog({
+        function getUrlParams() {
+            var params = [], hash;
+            var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+
+            for(var i = 0; i < hashes.length; i++) {
+                hash = hashes[i].split('=');
+                params.push(hash[0]);
+                params[hash[0]] = hash[1];
+            }
+
+            return params;
+        }
+
+        var params = getUrlParams();
+        var astroJob = params['job'];
+
+        $("#dialog").dialog({
             width: 400,
             height: 500,
             buttons: {
@@ -100,7 +115,7 @@
             };
 
         // http://nova.astrometry.net/user_images/3210682#annotated
-        imageObj.src = '../data/3757403/new_fits.png';
+        imageObj.src = '../data/' + astroJob + '/new_fits.png';
 
         var crossChair = new Konva.Layer();
         stage.add(crossChair);
@@ -131,60 +146,71 @@
         var starLayer = new Konva.Layer();
         stage.add(starLayer);
 
-        $.getJSON('../data/3757403/corr.json', function(data) {
-            console.log(data);
-            var tableData = data['corr_data'];
-            var AAVSOData = data['aavso_data'];
+        $.ajax("/api/star_data/?astro_job=" + astroJob + "&format=json")
+            .done(function(data) {
+                for (var i = 0; i < data.length; i++) {
+                    var aavso = data[i].aavso_data;
+                    var simbad = data[i].simbad_data;
 
-            for (var i = 0; i < tableData.length; i++) {
-                var vs = AAVSOData[i]['aavso']['Category'];
-                var starName = AAVSOData[i]['name'];
-                var color = (vs === 'Variable') ? 'red' : 'lime';
+                    var starName = simbad.MAIN_ID;
 
-                var tableRec = '<tr>'
-                    + '<td>' + starName + '</td>'
-                    + '<td>' + tableData[i][2] + '</td>'
-                    + '<td>' + tableData[i][3] + '</td>'
-                    + '<td>' + AAVSOData[i]['aavso']['MinMag'] + '</td>'
-                    + '<td>' + AAVSOData[i]['aavso']['MaxMag'] + '</td>'
-                    + '</tr>';
+                    var color = 'lime';
+                    var minMag, maxMag;
 
-                $('#myTable').children('.tablebody').append(tableRec);
+                    if (aavso) {
+                        color = (aavso.Category === 'Variable') ? 'red' : 'lime';
+                        minMag = aavso.MinMag;
+                        maxMag = aavso.MaxMag;
+                    }
 
-                var circle = new Konva.Circle({
-                    x: tableData[i][0],
-                    y: tableData[i][1],
-                    radius: 15,
-                    stroke: color,
-                    strokeWidth: 2,
-                    starName: starName,
-                });
+                    var tableRec = '<tr>'
+                        + '<td>' + starName + '</td>'
+                        + '<td>' + data[i].field_ra + '</td>'
+                        + '<td>' + data[i].field_dec + '</td>'
+                        + '<td>' + minMag + '</td>'
+                        + '<td>' + maxMag + '</td>'
+                        + '</tr>';
 
-                circle.on('click', function () {
-                    console.log(this);
-                });
+                    $('#myTable').children('.tablebody').append(tableRec);
 
-                var text = new Konva.Text({
-                    x: tableData[i][0] + 16,
-                    y: tableData[i][1],
-                    text: starName,
-                    fontSize: 20,
-                    fontFamily: 'Arial',
-                    fill: color,
-                    starName: starName,
-                });
+                    var circle = new Konva.Circle({
+                        x: data[i].field_x,
+                        y: data[i].field_y,
+                        radius: 15,
+                        stroke: color,
+                        strokeWidth: 2,
+                        starName: starName,
+                    });
 
-                text.on('click', function () {
-                    console.log(this.attrs.starName);
-                });
+                    circle.on('click', function () {
+                        console.log(this);
+                    });
 
-                starLayer.add(circle);
-                starLayer.add(text);
-            }
+                    var text = new Konva.Text({
+                        x: data[i].field_x + 16,
+                        y: data[i].field_y,
+                        text: starName,
+                        fontSize: 20,
+                        fontFamily: 'Arial',
+                        fill: color,
+                        starName: starName,
+                    });
 
-            $("#myTable").tablesorter();
-            starLayer.batchDraw();
-        });
+                    text.on('click', function () {
+                        console.log(this.attrs.starName);
+                    });
+
+                    starLayer.add(circle);
+                    starLayer.add(text);
+
+
+                }
+
+                $("#myTable").tablesorter();
+                starLayer.batchDraw();
+            }).fail(function(err) {
+                alert("error " + err.status);
+            });
 
     </script>
   </body>
