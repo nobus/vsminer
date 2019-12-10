@@ -2,6 +2,8 @@ import os
 
 from .settings import BASE_DIR
 
+ALLOWED_HOSTS = ['*']
+
 USE_TZ = False
 
 DATABASES = {

@@ -1,9 +1,29 @@
+
+upstream django {
+    server unix:////home/nobus/develop/vsminer/wsgi.sock;
+}
+
 server {
     listen 80;
     server_name 192.168.1.2;
+    charset     utf-8;
 
-    location = /favicon.ico { access_log off; log_not_found off; }
     location / {
-        root /home/nobus/develop/vsminer;
+        root /home/nobus/develop/vsminer/ui;
+        index index.html;
+    }
+
+    location /api/ {
+        uwsgi_pass  django;
+        include     /home/nobus/develop/vsminer/vsminer/uwsgi_params;
+    }
+
+    location /data/ {
+        alias /home/nobus/develop/vsminer/data/;
+    }
+
+    location = /favicon.ico {
+        access_log off;
+        log_not_found off;
     }
 }
