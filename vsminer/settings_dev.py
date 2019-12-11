@@ -18,3 +18,7 @@ DATABASES = {
 }
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'data')
+
+CELERY_ALWAYS_EAGER = True
+CELERY_IMPORTS = ("tasks", )
+CELERY_ACCEPT_CONTENT = ['json']
