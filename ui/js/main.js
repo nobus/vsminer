@@ -72,6 +72,14 @@ $(document).ready(function(){
                     };
                 });
 
+                circle.on('mouseover', function() {
+                    document.body.style.cursor = 'pointer';
+                });
+
+                circle.on('mouseout', function() {
+                    document.body.style.cursor = 'default';
+                });
+
                 layer.add(circle);
             }
 
