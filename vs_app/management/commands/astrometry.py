@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import sys
 from django.core.management.base import BaseCommand
 
 from vs_app.downloaders import AstrometryLoader
+
+from . import logger
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
@@ -16,6 +19,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         astrometry_loader = AstrometryLoader(
+            logger,
             options['job_number'],
             options['status_url'],
             job_info=options['job_info'],

@@ -34,7 +34,8 @@ from vs_app.models import AstroMetryJob, CorrFits, NewFits, SimbadData, AAVSODat
 
 
 class ProtoLoader:
-    def __init__(self, job_number, sleep_interval=(3, 9)):
+    def __init__(self, logger, job_number, sleep_interval=(3, 9)):
+        self.logger = logger
         self.job_number = job_number
         self.sleep_interval = sleep_interval
 
@@ -49,7 +50,8 @@ class ProtoLoader:
 
 class AstrometryLoader(ProtoLoader):
     def __init__(
-            self, 
+            self,
+            logger,
             job_number,
             status_url,
             job_info=False, 
@@ -58,7 +60,7 @@ class AstrometryLoader(ProtoLoader):
             all_data=True
         ):
 
-        super().__init__(job_number)
+        super().__init__(logger, job_number)
 
         self.status_url = status_url
         self.job_info = job_info
@@ -74,7 +76,7 @@ class AstrometryLoader(ProtoLoader):
         http://astrometry.net/doc/net/api.html#getting-job-results
         """
 
-        print(f'Get job info for job={self.job_number}')
+        self.logger(f'Get job info for job={self.job_number}')
         resp = requests.get(f'{self.astrometry_url}/api/jobs/{self.job_number}/info/')
 
         job_info = json.loads(resp.text)
@@ -182,7 +184,6 @@ class AstrometryLoader(ProtoLoader):
 
             image_data = hdu_list[0].data
             vmin, vmax = self.minmax_calc(image_data)
-            print(vmin, vmax)
 
             matplotlib.image.imsave(
                 os.path.join(self.job_dir, 'new_fits.png'),
@@ -197,7 +198,7 @@ class AstrometryLoader(ProtoLoader):
             fd.write(image_data_enc)
             fd.close()
         else:
-            print('No image data', file=sys.stderr)
+            self.logger('No image data')
 
         hdu_list.close()
 
@@ -244,9 +245,6 @@ class AstrometryLoader(ProtoLoader):
                 self.get_corr()
 
 class SimbadLoader(ProtoLoader):
-    def __init__(self, job_number, sleep_interval=(3, 9)):
-        super().__init__(job_number, sleep_interval)
-
     def _get_info_from_simbad(self, ra, dec):
         """
         MAIN_ID        RA           DEC      RA_PREC DEC_PREC COO_ERR_MAJA COO_ERR_MINA COO_ERR_ANGLE COO_QUAL COO_WAVELENGTH     COO_BIBCODE    
@@ -284,7 +282,7 @@ class SimbadLoader(ProtoLoader):
 
                 return ret
             except Exception as ex:
-                print('Simbad: ', ex, file=sys.stderr)
+                self.logger(f'Simbad: {ex}')
 
         return None
 
@@ -303,10 +301,7 @@ class SimbadLoader(ProtoLoader):
 
             if found_obj:
                 if len(found_obj) > 1:
-                    print(
-                        f'Two or more object in SimbadData for RA = {RA} DEC = {DEC} radius {self.radius}',
-                        file=sys.stderr,
-                        )
+                    self.logger(f'Two or more object in SimbadData for RA = {RA} DEC = {DEC} radius {self.radius}')
                 else:
                     corr_obj.simbad_data = found_obj[0]
                     corr_obj.save()
@@ -320,15 +315,12 @@ class SimbadLoader(ProtoLoader):
                     corr_obj.save()
 
 class AAVSOLoader(ProtoLoader):
-    def __init__(self, job_number, sleep_interval=(3, 9)):
-        super().__init__(job_number, sleep_interval)
-
     def _get_info_from_aavso(self, obj_name):
         self.rsleep()        
 
         aavso_format = obj_name.replace(' ', '+').lstrip('V*')
 
-        print(f'Get AAVSO data for {aavso_format}', file=sys.stderr)
+        self.logger(f'Get AAVSO data for {aavso_format}')
 
         resp = requests.get(f'https://www.aavso.org/vsx/index.php?ident={aavso_format}&view=api.object&format=json')
 
@@ -354,7 +346,7 @@ class AAVSOLoader(ProtoLoader):
 
         aavso_data = json.loads(resp.text)
         aavso_data = aavso_data.get('VSXObject', {})
-        print(aavso_data, file=sys.stderr)
+        self.logger(aavso_data)
 
         if aavso_data:
             aavso_data['RA2000'] = float(aavso_data['RA2000'])
@@ -385,10 +377,7 @@ class AAVSOLoader(ProtoLoader):
 
             if found_obj:
                 if len(found_obj) > 1:
-                    print(
-                        f'Two or more object in AAVSOData for RA2000 = {RA2000} Declination2000 = {Declination2000} radius {self.radius}',
-                        file=sys.stderr,
-                        )
+                    self.logger(f'Two or more object in AAVSOData for RA2000 = {RA2000} Declination2000 = {Declination2000} radius {self.radius}')
                 else:
                     corr_obj.aavso_data = found_obj[0]
                     corr_obj.save()
