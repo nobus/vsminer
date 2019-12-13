@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Job list</title>
+
+        <link rel="stylesheet" href="css/astrojobs.css">
+
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+        <script src="js/astrojobs.js"></script>
+    </head>
+
+  <body>
+    <div>
+        <label for="job_number">Job number:</label></br>
+        <input type="number" name="job_number" id="job_number"></input></br>
+
+        <label for="status_url">URL:</label></br>
+        <input type="url" name="status_url" id="status_url"></input></br></br>
+
+        <button type="button" id="submit">Submit!</button>
+    </div>
+
+    <div>
+        <h3>Current loaders:</h3></br>
+        <div id="job_list"></div>
+    </div>
+  </body>
+</html>
