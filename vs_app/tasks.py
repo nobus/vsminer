@@ -4,9 +4,8 @@ from __future__ import absolute_import, unicode_literals
 
 import time
 
-from celery.utils.log import get_task_logger
-
 from .celery import app
+from celery.utils.log import get_task_logger
 
 from vs_app.downloaders import AstrometryLoader, SimbadLoader, AAVSOLoader
 
@@ -27,10 +26,10 @@ def sleep(n):
     return {'n': n}
 
 @app.task
-def download_astrometry_data(job_number, url_status):
-    astro_loader = AstrometryLoader(job_number, url_status)
-    simbad_loader = SimbadLoader(job_number)
-    aavso_loader = AAVSOLoader(job_number)
+def download_astrometry_data(job_number, status_url):
+    astro_loader = AstrometryLoader(logger, job_number, status_url)
+    simbad_loader = SimbadLoader(logger, job_number)
+    aavso_loader = AAVSOLoader(logger, job_number)
 
     astro_loader.run()
     simbad_loader.run()
