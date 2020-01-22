@@ -16,6 +16,9 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = False
 
+# temporary (?) for rawtran/munipack
+TIME_ZONE_3 = 3
+
 STATIC_URL = '/static/'
 ROOT_URLCONF = 'vsminer.urls'
 

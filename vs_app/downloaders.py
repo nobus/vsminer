@@ -18,7 +18,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from random import randint
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import astropy.coordinates as coord
 import astropy.units as u
@@ -149,6 +149,15 @@ class AstrometryLoader(ProtoLoader):
     def set_headers(self, hdu_list):
         params = {}
 
+        def date_time_parser(x):
+            # special for rawtran and munipack
+            dt = datetime.strptime(x, '%Y-%m-%dT%H:%M:%S')
+
+            # to UTC because some problems in rawtran/munipack?
+            dt = dt - timedelta(hours=settings.TIME_ZONE_3)
+
+            return dt.date(), dt.time()
+
         to_int = lambda x: int(x)
         key_map = {
             'NAXIS': ['naxis', to_int],
@@ -167,7 +176,16 @@ class AstrometryLoader(ProtoLoader):
 
         for elem in hdu_list[0].header:
             if elem in key_map:
-                params[key_map[elem][0]] = key_map[elem][1](hdu_list[0].header[elem])
+                # rawtran + munipack:
+                # DATE-OBS= '2020-01-21T20:09:07' / time of exposure
+                # or IRIS:
+                # DATE-OBS= '05/01/2020'
+                # UT-START= '18:31:20'
+
+                if elem == 'DATE-OBS' and 'UT-START' not in hdu_list[0].header:
+                    params['date_obs'], params['ut_start'] = date_time_parser(hdu_list[0].header[elem])
+                else:
+                    params[key_map[elem][0]] = key_map[elem][1](hdu_list[0].header[elem])
 
         job_obj = AstroMetryJob.objects.get(job_number=self.job_number)
         NewFits.objects.filter(astro_job=job_obj).delete()
@@ -351,8 +369,12 @@ class AAVSOLoader(ProtoLoader):
         if aavso_data:
             aavso_data['RA2000'] = float(aavso_data['RA2000'])
             aavso_data['Declination2000'] = float(aavso_data['Declination2000'])
-            aavso_data['ProperMotionRA'] = float(aavso_data['ProperMotionRA'])
-            aavso_data['ProperMotionDec'] = float(aavso_data['ProperMotionDec'])
+
+            if 'ProperMotionRA' in aavso_data:
+                aavso_data['ProperMotionRA'] = float(aavso_data['ProperMotionRA'])
+
+            if 'ProperMotionDec' in aavso_data:
+                aavso_data['ProperMotionDec'] = float(aavso_data['ProperMotionDec'])
 
             if 'Period' in aavso_data:
                 aavso_data['Period'] = float(re.sub('[^0-9]','', aavso_data['Period']))
