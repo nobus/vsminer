@@ -1,44 +1,37 @@
 #!/bin/bash
 
-BASEDIR=$1
+PHCORR=$1
+BASEDIR=$2
 
-###### MAKE BIAS #####
-echo `date` "Stage 1. BIAS"
-echo `date` "Convert RAW to FITS"
+MASTER_BIAS=$PHCORR/master_bias.Gi.fits
+MASTER_DARK=$PHCORR/master_dark.Gi.fits
+MASTER_FLAT=$PHCORR/master_flat.Gi.dark.fits
 
-cd $BASEDIR/bias/raw
-for A in *.CR2; do echo $A; rawtran -A "-t 0" -c Gi -o ${A%CR2}fits $A; done
-mv *.fits ../fits
+: '
+http://munipack.physics.muni.cz/phcorrtut.html
+'
 
-echo `date` "Make bias from fits"
-cd ../fits
-munipack bias -o master_bias.Gi.fits IMG_*.fits
-mv master_bias.Gi.fits $BASEDIR
+cd $BASEDIR
 
+mkdir fits
+touch fits/url.txt
 
-###### MAKE DARK #####
-echo `date` "Stage 2. DARK"
-echo `date` "Convert RAW to FITS"
+echo "CONVERT"
+for FILE in `ls *.CR2`; do
+    echo $FILE
+    rawtran -A "-t 0" -c Gi -o fits/${FILE%CR2}Gi.fits $FILE
+done
 
-cd $BASEDIR/dark/raw
-for A in *.CR2; do echo $A; rawtran -A "-t 0" -c Gi -o ${A%CR2}fits $A; done
-mv *.fits ../fits
+echo "PHCORR"
+cd fits
 
-echo `date` "Make dark from fits"
-cd ../fits
-munipack dark -o master_dark.Gi.fits IMG_*.fits
-mv master_dark.Gi.fits $BASEDIR
+for FILE in `ls *.fits`; do
+    echo $FILE
+    munipack phcorr -dark $MASTER_DARK -bias $MASTER_BIAS -flat $MASTER_FLAT -gain 1 $BASEDIR/fits/$FILE
+done
 
-
-###### MAKE FLAT #####
-echo `date` "Stage 2. FLAT"
-echo `date` "Convert RAW to FITS"
-
-cd $BASEDIR/flat/raw
-for A in *.CR2; do echo $A; rawtran -A "-t 0" -c Gi -o ${A%CR2}fits $A; done
-mv *.fits ../fits
-
-echo `date` "Make flat from fits"
-cd ../fits
-munipack flat -o master_flat.Gi.dark.fits -gain 1 -dark ../../master_dark.Gi.fits IMG_*.fits
-mv master_flat.Gi.dark.fits $BASEDIR
+for FILE in `ls $BASEDIR/fits/*.fits~`; do
+    mv $FILE ${FILE%fits~}phcorr.fits
+    echo ${FILE%fits~}phcorr.fits >> url.txt
+    echo >> url.txt
+done
