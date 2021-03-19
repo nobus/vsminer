@@ -13,7 +13,7 @@ cryptography==2.8
 cycler==0.10.0
 Django==3.0
 django-filter==2.2.0
-djangorestframework==3.10.3
+djangorestframework==3.11.2
 flower==0.9.3
 html5lib==1.0.1
 idna==2.8
